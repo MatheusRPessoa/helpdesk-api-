@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  TECHNICIAN
+  CUSTOMER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+}
+
+model User {
+  id String @id @default(uuid())
+  name String
+  email String @unique
+  password String
+  role UserRole
+  avatarUrl String? @map("avatar_url")
+
+  mustChangePassword Boolean @default(false) @map("must_change_password")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  availabilities TechnicianAvailability[]
+  ticketsAsCustomer Ticket[] @relation("CustomerTickets")
+  ticketsAsTechnician Ticket[] @relation("TechnicianTickets")
+
+  @@map("users")  
+}
+model TechnicianAvailability {
+  id String @id @default(uuid())
+  technicianId String @map("technician_id")
+  hour String
+
+  technician User @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@unique([technicianId, hour])
+  @@map("technician_availabilities")
+}
+
+model Service {
+  id String @id @default(uuid())
+  title String
+  price Decimal @db.Decimal(10, 2)
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ticketServices TicketService[]
+
+  @@map("services")
+}
+
+model Ticket {
+  id String @id @default(uuid())
+  title String
+  description String
+  status TicketStatus @default(OPEN)
+
+  customerId String @map("customer_id")
+  technicianId String @map("technician_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  customer User @relation("CustomerTickets", fields: [customerId], references: [id], onDelete: Cascade)
+  technician User @relation("TechnicianTickets", fields: [technicianId], references: [id], onDelete: Restrict)
+
+  services TicketService[]
+
+  @@map("tickets")
+}
+model TicketService {
+  id String @id @default(uuid())
+  ticketId String @map("ticket_id")
+  serviceId String @map("service_id")
+
+  price Decimal @db.Decimal(10, 2)
+  isAdditional Boolean @default(false) @map("is_additional")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@map("ticket_services")
+}
