@@ -30,3 +30,8 @@ technicianRoutes.put(
     techniciansController.update,
 )
 
+technicianRoutes.patch(
+    "/:id/availabilities",
+    verifyUserAuthorization([UserRole.ADMIN]),
+    techniciansController.updateAvailabilities,
+)

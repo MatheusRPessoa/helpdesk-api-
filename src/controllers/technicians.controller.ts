@@ -5,6 +5,7 @@ import { CreateTechnicianService } from "@/services/technicians/create-technicia
 import { ListTechniciansService } from "@/services/technicians/list-technicians.service";
 import { ListAvailableTechniciansService } from "@/services/technicians/list-available-technicians.service";
 import { UpdateTechnicianService } from "@/services/technicians/update-technician.service";
+import { UpdateTechnicianAvailabilitiesService } from "@/services/technicians/update-technician-availabilities.service";
 
 const hourSchema = z
   .string()
@@ -12,6 +13,10 @@ const hourSchema = z
 
 const paramsSchema = z.object({
     id: z.uuid("ID inválido")
+})
+
+const availabilitiesBodySchema = z.object({
+    availabilities: z.array(hourSchema),
 })
 
 const createBodySchema = z.object({
@@ -58,6 +63,19 @@ export class TechniciansController {
 
         const service = new UpdateTechnicianService()
         const technician = await service.execute({ technicianId: id, ...data })
+
+        return response.json(technician)
+    }
+
+    updateAvailabilities = async (request: Request, response: Response)  => {
+        const { id } = paramsSchema.parse(request.params)
+        const { availabilities } = availabilitiesBodySchema.parse(request.body)
+
+        const service = new UpdateTechnicianAvailabilitiesService()
+        const technician = await service.execute({
+            technicianId: id,
+            availabilities,
+        })
 
         return response.json(technician)
     }
