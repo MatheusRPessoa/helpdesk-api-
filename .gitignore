@@ -3,3 +3,6 @@ dist
 .env
 coverage
 /src/generated/prisma
+tmp/*
+!tmp/.gitkeep
+!tmp/uploads/.gitkeep
