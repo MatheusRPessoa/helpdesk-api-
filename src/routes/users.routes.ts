@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { UsersController } from "@/controllers/users.controller";
-import { ensureAuthenticated } from "@/middlewares/ensure-authenticated";
+import { ensureAuthenticated } from "@/middlewares/ensure-authenticated.middleware";
 import { uploadSingleImage } from "@/middlewares/upload.middleware";
 
 export const usersRoutes = Router()
