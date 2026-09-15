@@ -8,9 +8,16 @@ export const customersRoutes = Router()
 const customersController = new CustomersController()
 
 customersRoutes.post("/", customersController.create)
+
 customersRoutes.get(
     "/",
     ensureAuthenticated,
     verifyUserAuthorization([UserRole.ADMIN]),
     customersController.index,
+)
+
+customersRoutes.put(
+    "/:id",
+    ensureAuthenticated,
+    customersController.update,
 )
