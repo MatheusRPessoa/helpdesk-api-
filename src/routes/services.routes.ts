@@ -15,3 +15,5 @@ servicesRoutes.post(
     verifyUserAuthorization([UserRole.ADMIN]),
     servicesController.create,
 )
+
+servicesRoutes.get("/", servicesController.index)
