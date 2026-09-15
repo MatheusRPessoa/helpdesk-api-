@@ -1,19 +1,25 @@
 import { Router } from "express";
 import { UserRole } from "@prisma/client";
 
-import { ServicesController } from "@/controllers/services.controller";
+import { ServiceController } from "@/controllers/service.controller";
 import { ensureAuthenticated } from "@/middlewares/ensure-authenticated.middleware";
 import { verifyUserAuthorization } from "@/middlewares/verify-user-authorization.middleware";
 
-export const servicesRoutes = Router()
-const servicesController = new ServicesController()
+export const serviceRoutes = Router()
+const servicesController = new ServiceController()
 
-servicesRoutes.use(ensureAuthenticated)
+serviceRoutes.use(ensureAuthenticated)
 
-servicesRoutes.post(
+serviceRoutes.post(
     "/",
     verifyUserAuthorization([UserRole.ADMIN]),
     servicesController.create,
 )
 
-servicesRoutes.get("/", servicesController.index)
+serviceRoutes.get("/", servicesController.index)
+
+serviceRoutes.put(
+    "/:id",
+    verifyUserAuthorization([UserRole.ADMIN]),
+    servicesController.update
+)

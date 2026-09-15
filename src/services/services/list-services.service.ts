@@ -1,11 +1,11 @@
 import { prisma } from "@/database/prisma";
 
-interface ListServicesRequest {
+interface ListServiceRequest {
     onlyActive: boolean
 }
 
-export class ListServicesService {
-    async execute({ onlyActive }: ListServicesRequest) {
+export class ListServiceService {
+    async execute({ onlyActive }: ListServiceRequest) {
         const services = await prisma.service.findMany({
             where: onlyActive ? { isActive: true } : undefined,
             orderBy: { title: "asc" },
