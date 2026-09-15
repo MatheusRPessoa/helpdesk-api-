@@ -5,6 +5,7 @@ import { technicianRoutes } from "./technicians.routes";
 import { usersRoutes } from "./users.routes";
 import { customersRoutes } from "./customer.routes";
 import { serviceRoutes } from "./services.routes";
+import { ticketsRoutes } from "./tickets.routes";
 
 export const routes = Router()
 
@@ -18,3 +19,4 @@ routes.use("/technicians", technicianRoutes)
 routes.use("/users", usersRoutes)
 routes.use("/customers", customersRoutes)
 routes.use("/services", serviceRoutes)
+routes.use("/tickets", ticketsRoutes)
