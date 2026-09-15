@@ -15,3 +15,5 @@ ticketsRoutes.post(
     verifyUserAuthorization([UserRole.CUSTOMER]),
     ticketController.create,
 )
+
+ticketsRoutes.get("/", ticketController.index)
