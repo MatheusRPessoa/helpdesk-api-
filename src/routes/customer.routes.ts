@@ -21,3 +21,9 @@ customersRoutes.put(
     ensureAuthenticated,
     customersController.update,
 )
+
+customersRoutes.delete(
+    "/:id",
+    ensureAuthenticated,
+    customersController.delete
+)

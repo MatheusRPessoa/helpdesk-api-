@@ -4,6 +4,7 @@ import z from "zod";
 import { CreateCustomerService } from "@/services/customers/create-customer.service";
 import { ListCustomersService } from "@/services/customers/list-customers.service";
 import { UpdateCustomerService } from "@/services/customers/update-customer.service"
+import { DeleteCustomerService } from "@/services/customers/delete-customer.service"
 
 const createBodySchema = z.object({
     name: z.string().trim().min(3, "Nome deve ter ao menos 3 caracteres."),
@@ -50,5 +51,18 @@ export class CustomersController {
         })
 
         return response.json(customer)
+    }
+
+    delete = async (request: Request, response: Response) => {
+        const { id } = paramsSchema.parse(request.params)
+
+        const service = new DeleteCustomerService()
+        await service.execute({
+            customerId: id,
+            requesterId: request.user!.id,
+            requesterRole: request.user!.role
+        })
+
+        return response.status(204).send()
     }
 }
