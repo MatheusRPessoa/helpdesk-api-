@@ -23,3 +23,9 @@ serviceRoutes.put(
     verifyUserAuthorization([UserRole.ADMIN]),
     servicesController.update
 )
+
+serviceRoutes.patch(
+    "/:id/status",
+    verifyUserAuthorization([UserRole.ADMIN]),
+    servicesController.updateStatus,
+)
