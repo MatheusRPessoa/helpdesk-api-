@@ -3,6 +3,7 @@ import { ticketSelect } from "@/utils/ticket-select";
 
 import { prisma } from "@/database/prisma";
 import { AppError } from "@/utils/AppError";
+import { calculateTicketTotal } from "@/utils/calculate-ticket-total";
 
 interface CreateTicketRequest {
     customerId: string
@@ -64,6 +65,9 @@ export class CreateTicketService {
             select: ticketSelect,
         })
 
-        return ticket
+        return {
+            ...ticket,
+            total: calculateTicketTotal(ticket.services),
+        }
     }
 }

@@ -2,6 +2,7 @@ import { UserRole, Prisma } from "@prisma/client";
 
 import { prisma } from "@/database/prisma";
 import { ticketSelect } from "@/utils/ticket-select";
+import { calculateTicketTotal } from "@/utils/calculate-ticket-total"
 
 interface ListTicketsRequest {
     requesterId: string
@@ -27,11 +28,8 @@ export class ListTicketsService {
         })
 
         return tickets.map((ticket) => ({
-            ...ticket,
-            total: ticket.services.reduce(
-                (sum, item) => sum.add(item.price),
-                new Prisma.Decimal(0),
-            ),
+        ...ticket,
+        total: calculateTicketTotal(ticket.services),
         }))
     }
 }

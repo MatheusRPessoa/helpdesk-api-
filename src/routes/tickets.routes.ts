@@ -6,14 +6,20 @@ import { ensureAuthenticated } from "@/middlewares/ensure-authenticated.middlewa
 import { verifyUserAuthorization } from "@/middlewares/verify-user-authorization.middleware";
 
 export const ticketsRoutes = Router()
-const ticketController = new TicketsController()
+const ticketsController = new TicketsController()
 
 ticketsRoutes.use(ensureAuthenticated)
 
 ticketsRoutes.post(
     "/",
     verifyUserAuthorization([UserRole.CUSTOMER]),
-    ticketController.create,
+    ticketsController.create,
 )
 
-ticketsRoutes.get("/", ticketController.index)
+ticketsRoutes.get("/", ticketsController.index)
+
+ticketsRoutes.post(
+    "/:id/services",
+    verifyUserAuthorization([UserRole.TECHNICIAN]),
+    ticketsController.addServices
+)

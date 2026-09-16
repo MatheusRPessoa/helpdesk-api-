@@ -5,7 +5,6 @@ import { UserRole } from "@prisma/client";
 import { ListServiceService } from "@/services/services/list-services.service";
 import { UpdateServiceService } from "@/services/services/update-service.service";
 import { ToggleServiceStatusService } from "@/services/services/toggle-service-status.service";
-import { request } from "node:http";
 
 const createBodySchema = z.object({
     title: z.string().trim().min(3, "Título deve ter ao menos 3 caracteres"),
