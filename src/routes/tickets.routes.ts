@@ -12,7 +12,7 @@ ticketsRoutes.use(ensureAuthenticated)
 
 ticketsRoutes.post(
     "/",
-    verifyUserAuthorization([UserRole.CUSTOMER]),
+    verifyUserAuthorization([UserRole.ADMIN, UserRole.CUSTOMER]),
     ticketsController.create,
 )
 
@@ -20,6 +20,12 @@ ticketsRoutes.get("/", ticketsController.index)
 
 ticketsRoutes.post(
     "/:id/services",
-    verifyUserAuthorization([UserRole.TECHNICIAN]),
+    verifyUserAuthorization([UserRole.ADMIN, UserRole.TECHNICIAN]),
     ticketsController.addServices
+)
+
+ticketsRoutes.patch(
+    "/:id/status",
+    verifyUserAuthorization([UserRole.ADMIN, UserRole.TECHNICIAN]),
+    ticketsController.updateStatus,
 )

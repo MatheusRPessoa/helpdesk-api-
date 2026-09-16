@@ -4,6 +4,8 @@ import z from "zod";
 import { CreateTicketService } from "@/services/tickets/create-ticket.service";
 import { ListTicketsService } from "@/services/tickets/list-tickets.service";
 import { AddTicketServicesService } from "@/services/tickets/add-ticket-services.service";
+import { TicketStatus } from "@prisma/client";
+import { UpdateTicketStatusService } from "@/services/tickets/update-ticket-status.service";
 
 const paramsSchema = z.object({
     id: z.uuid("ID inválido")
@@ -22,6 +24,10 @@ const createBodySchema = z.object({
     serviceIds: z
       .array(z.uuid("Serviço inválido"))
       .min(1, "Selecione ao menos um serviço"),
+})
+
+const statusBodySchema = z.object({
+    status: z.enum(TicketStatus),
 })
 
 export class TicketsController {
@@ -59,5 +65,20 @@ export class TicketsController {
         })
 
         return response.status(201).json(ticket)
+    }
+
+    updateStatus = async (request: Request, response: Response) => {
+        const { id } = paramsSchema.parse(request.params)
+        const { status } = statusBodySchema.parse(request.body)
+
+        const service = new UpdateTicketStatusService()
+        const ticket = await service.execute({
+            ticketId: id,
+            requesterId: request.user!.id,
+            requesterRole: request.user!.role,
+            status,
+        })
+
+        return response.json(ticket)
     }
 }
