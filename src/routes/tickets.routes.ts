@@ -17,6 +17,7 @@ ticketsRoutes.post(
 )
 
 ticketsRoutes.get("/", ticketsController.index)
+ticketsRoutes.get("/:id", ticketsController.show)
 
 ticketsRoutes.post(
     "/:id/services",

@@ -6,6 +6,7 @@ import { ListTicketsService } from "@/services/tickets/list-tickets.service";
 import { AddTicketServicesService } from "@/services/tickets/add-ticket-services.service";
 import { TicketStatus } from "@prisma/client";
 import { UpdateTicketStatusService } from "@/services/tickets/update-ticket-status.service";
+import { ShowTicketService } from "@/services/tickets/show-ticket.service";
 
 const paramsSchema = z.object({
     id: z.uuid("ID inválido")
@@ -77,6 +78,19 @@ export class TicketsController {
             requesterId: request.user!.id,
             requesterRole: request.user!.role,
             status,
+        })
+
+        return response.json(ticket)
+    }
+
+    show = async (request: Request, response: Response) => {
+        const { id } = paramsSchema.parse(request.params)
+
+        const service = new ShowTicketService()
+        const ticket = await service.execute({
+            ticketId: id,
+            requesterId: request.user!.id,
+            requesterRole: request.user!.role,
         })
 
         return response.json(ticket)
