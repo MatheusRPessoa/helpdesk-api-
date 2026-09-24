@@ -322,4 +322,191 @@ describe("Tickets", () => {
             expect(remainingServices).toHaveLength(0)
         })
     })
+
+    describe("DELETE /tickets/:id/services/:serviceId", () => {
+        it("remove um serviço adicional e recalcula o total", async () => {
+            const { technician, ticket } = await createTicketScenario()
+            const extra = await prisma.service.create({
+                data: { title: "Serviço Extra", price: 50 },
+            })
+
+            const added = await request(app)
+                .post(`/tickets/${ticket.id}/services`)
+                .set("Authorization", `Bearer ${technician.token}`)
+                .send({ serviceIds: [extra.id] })
+                .expect(201)
+
+            expect(Number(added.body.total)).toBe(150)
+
+            const additional = added.body.services.find(
+                (item: { isAdditional: boolean }) => item.isAdditional,
+            )
+
+            const response = await request(app)
+                .delete(`/tickets/${ticket.id}/services/${additional.id}`)
+                .set("Authorization", `Bearer ${technician.token}`)
+
+            expect(response.status).toBe(200)
+            expect(response.body.services).toHaveLength(1)
+            expect(Number(response.body.total)).toBe(100)
+        })
+
+        it("retorna 404 quando o chamado não existe", async () => {
+            const { technician } = await createTicketScenario()
+
+            const response = await request(app)
+            .delete(
+                "/tickets/00000000-0000-4000-8000-000000000000/services/00000000-0000-4000-8000-000000000001",
+            )
+            .set("Authorization", `Bearer ${technician.token}`)
+
+            expect(response.status).toBe(404)
+        })
+
+        it("recusa técnico que não é responsável", async () => {
+            const { technician, ticket } = await createTicketScenario()
+            const otherTechnician = await createTestUser({
+                role: UserRole.TECHNICIAN
+            })
+            const extra = await prisma.service.create({
+                data: { title: "Serviço Extra", price: 50 },
+            })
+
+            const added = await request(app)
+              .post(`/tickets/${ticket.id}/services`)
+              .set("Authorization", `Bearer ${technician.token}`)
+              .send({ serviceIds: [extra.id] })
+              .expect(201)
+
+            const additional = added.body.services.find(
+                (item: { isAdditional: boolean }) => item.isAdditional,
+            )
+
+            const response = await request(app)
+              .delete(`/tickets/${ticket.id}/services/${additional.id}`)
+              .set("Authorization", `Bearer ${otherTechnician.token}`)
+            
+            expect(response.status).toBe(403)
+        })
+
+        it("recusa admin e cliente pelo middleware", async () => {
+            const { admin, customer, technician, ticket } = await createTicketScenario()
+            const extra = await prisma.service.create({
+                data: { title: "Serviço Extra", price: 50 }
+            })
+
+            const added = await request(app)
+                .post(`/tickets/${ticket.id}/services`)
+                .set("Authorization", `Bearer ${technician.token}`)
+                .send({ serviceIds: [extra.id] })
+                .expect(201)
+
+            const additional = added.body.services.find(
+                (item: { isAdditional: boolean }) => item.isAdditional,
+            )
+
+            const byAdmin = await request(app)
+                .delete(`/tickets/${ticket.id}/services/${additional.id}`)
+                .set("Authorization", `Bearer ${admin.token}`)
+
+            const byCustomer = await request(app)
+                .delete(`/tickets/${ticket.id}/services/${additional.id}`)
+                .set("Authorization", `Bearer ${customer.token}`)
+
+            expect(byAdmin.status).toBe(403)
+            expect(byCustomer.status).toBe(403)
+        })
+
+        it("recusa remoção em chamado encerrado", async () => {
+            const { technician, ticket } = await createTicketScenario()
+            const extra = await prisma.service.create({
+                data: { title: "Serviço extra", price: 50 }
+            })
+
+            const added = await request(app)
+                .post(`/tickets/${ticket.id}/services`)
+                .set("Authorization", `Bearer ${technician.token}`)
+                .send({ serviceIds: [extra.id] })
+                .expect(201)
+
+            const additional = added.body.services.find(
+                (item: { isAdditional: boolean }) => item.isAdditional,
+            )
+
+            await prisma.ticket.update({
+                where: { id: ticket.id },
+                data: { status: TicketStatus.CLOSED },
+            })
+
+            const response = await request(app)
+              .delete(`/tickets/${ticket.id}/services/${additional.id}`)
+              .set("Authorization", `Bearer ${technician.token}`)
+            
+            expect(response.status).toBe(409)
+        })
+
+        it("retorna 404 quando o serviço pertence a outro chamado", async () => {
+            const scenario = await createTicketScenario()
+            const extra = await prisma.service.create({
+            data: { title: "Serviço Extra", price: 50 },
+            })
+
+            const otherTicket = await prisma.ticket.create({
+                data: {
+                    title: "Outro chamado",
+                    description: "Chamado usado para o teste de vínculo",
+                    customerId: scenario.customer.user.id,
+                    technicianId: scenario.technician.user.id,
+                    services: {
+                        create: [
+                            { serviceId: scenario.service.id, price: scenario.service.price },
+                            { serviceId: extra.id, price: extra.price, isAdditional: true },
+                        ],
+                    },
+                },
+                include: { services: true },
+            })
+
+            const foreignService = otherTicket.services.find(
+                (item) => item.isAdditional,
+            )!
+
+            const response = await request(app)
+              .delete(`/tickets/${scenario.ticket.id}/services/${foreignService.id}`)
+              .set("Authorization", `Bearer ${scenario.technician.token}`)
+
+            expect(response.status).toBe(404)
+        })
+
+        it("recusa remover o serviço original do chamado", async () => {
+            const { technician, ticket } = await createTicketScenario()
+
+            const ticketServices = await prisma.ticketService.findMany({
+                where: { ticketId: ticket.id },
+            })
+
+            const original = ticketServices.find((item) => !item.isAdditional)!
+
+            const response = await request(app)
+                .delete(`/tickets/${ticket.id}/services/${original.id}`)
+                .set("Authorization", `Bearer ${technician.token}`)
+
+            expect(response.status).toBe(400)
+        })
+
+        it("recusa UUID inválido nos params", async () => {
+            const { technician, ticket } = await createTicketScenario()
+
+            const invalidTicketId = await request(app)
+            .delete(`/tickets/nao-e-uuid/services/${ticket.id}`)
+            .set("Authorization", `Bearer ${technician.token}`)
+
+            const invalidServiceId = await request(app)
+            .delete(`/tickets/${ticket.id}/services/nao-e-uuid`)
+            .set("Authorization", `Bearer ${technician.token}`)
+
+            expect(invalidTicketId.status).toBe(400)
+            expect(invalidServiceId.status).toBe(400)
+        })
+    })
 })
