@@ -7,6 +7,7 @@ import { AddTicketServicesService } from "@/services/tickets/add-ticket-services
 import { TicketStatus } from "@prisma/client";
 import { UpdateTicketStatusService } from "@/services/tickets/update-ticket-status.service";
 import { ShowTicketService } from "@/services/tickets/show-ticket.service";
+import { RemoveTicketServiceService } from "@/services/tickets/remove-ticket-service.service";
 
 const paramsSchema = z.object({
     id: z.uuid("ID inválido")
@@ -29,6 +30,11 @@ const createBodySchema = z.object({
 
 const statusBodySchema = z.object({
     status: z.enum(TicketStatus),
+})
+
+const removeServiceParamsSchema = z.object({
+  id: z.uuid("ID inválido"),
+  serviceId: z.uuid("ID inválido"),
 })
 
 export class TicketsController {
@@ -91,6 +97,19 @@ export class TicketsController {
             ticketId: id,
             requesterId: request.user!.id,
             requesterRole: request.user!.role,
+        })
+
+        return response.json(ticket)
+    }
+
+    removeService = async (request: Request, response: Response) => {
+        const { id, serviceId } = removeServiceParamsSchema.parse(request.params)
+
+        const service = new RemoveTicketServiceService()
+        const ticket = await service.execute({
+            ticketId: id,
+            ticketServiceId: serviceId,
+            technicianId: request.user!.id,
         })
 
         return response.json(ticket)

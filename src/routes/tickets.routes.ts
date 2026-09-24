@@ -30,3 +30,9 @@ ticketsRoutes.patch(
     verifyUserAuthorization([UserRole.ADMIN, UserRole.TECHNICIAN]),
     ticketsController.updateStatus,
 )
+
+ticketsRoutes.delete(
+    "/:id/services/:serviceId",
+    verifyUserAuthorization([UserRole.TECHNICIAN]),
+    ticketsController.removeService,
+)
