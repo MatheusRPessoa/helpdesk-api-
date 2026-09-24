@@ -32,7 +32,7 @@ ticketsRoutes.patch(
 )
 
 ticketsRoutes.delete(
-    "/:id/services/:serviceId",
+    "/:id/services/:ticketServiceId",
     verifyUserAuthorization([UserRole.TECHNICIAN]),
     ticketsController.removeService,
 )

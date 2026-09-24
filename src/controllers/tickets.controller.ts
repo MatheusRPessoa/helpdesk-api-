@@ -34,7 +34,7 @@ const statusBodySchema = z.object({
 
 const removeServiceParamsSchema = z.object({
   id: z.uuid("ID inválido"),
-  serviceId: z.uuid("ID inválido"),
+  ticketServiceId: z.uuid("ID inválido"),
 })
 
 export class TicketsController {
@@ -103,12 +103,12 @@ export class TicketsController {
     }
 
     removeService = async (request: Request, response: Response) => {
-        const { id, serviceId } = removeServiceParamsSchema.parse(request.params)
+        const { id, ticketServiceId } = removeServiceParamsSchema.parse(request.params)
 
         const service = new RemoveTicketServiceService()
         const ticket = await service.execute({
             ticketId: id,
-            ticketServiceId: serviceId,
+            ticketServiceId: ticketServiceId,
             technicianId: request.user!.id,
         })
 
